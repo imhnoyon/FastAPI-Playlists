@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.params import Body
 
 app = FastAPI()
 
@@ -15,5 +16,6 @@ def root():
 
 
 @app.post("/createposts")
-def create_posts():
-    return {"message":"successfully added your data"}
+def create_posts(playload: dict =Body(...)): #parameter dictionary types and everything reacived in playload variable
+    print(playload)
+    return {"message":f"Course: {playload['name']} Instractor: {playload['instractor']} Duration:{playload['duration']} "}
