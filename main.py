@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import FastAPI
 from fastapi.params import Body
 from pydantic import BaseModel # for import title str,content str
@@ -12,6 +13,8 @@ app = FastAPI()
 class Post(BaseModel): # how many parameter we needed assign this function
     title: str
     content: str
+    published: bool= True
+    rating: Optional[int] = None # optional field
     
 
 
@@ -34,6 +37,7 @@ def root():
 
 
 @app.post("/createposts")
-def create_posts(playload: Post): #this post is class post name and parameter dictionary types and everything reacived in playload variable
+def create_posts(playload: Post): #this post is class name post and parameter dictionary types and everything reacived in playload variable
     print(playload)
-    return {f"Title -> {playload.title} Content -> {playload.content}"}
+    print(playload.dict())
+    return {"Data":playload}
