@@ -91,7 +91,7 @@ def get_post(id):
     return {"post_details": post}
 
 
- #patch request trying
+ #patch request trying not working solve in after sometime
 @app.patch("/posts/{id}")
 def get_post(id):
     post=find_post(int(id))
