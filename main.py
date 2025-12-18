@@ -89,3 +89,10 @@ def find_post(id):
 def get_post(id):
     post=find_post(int(id))
     return {"post_details": post}
+
+
+ #patch request trying
+@app.patch("/posts/{id}")
+def get_post(id):
+    post=find_post(int(id))
+    return {"post_details": post}
