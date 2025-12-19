@@ -21,14 +21,14 @@ def test_posts(db:Session = Depends(get_db)):
 
 
 #connection with postgresql  codes here
-from .screct_file import conn
+from .secret_key import conn
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import time
 
 while True:
     try:
-        # conn = psycopg2.connect(host='localhost', database='fastapi', user='postgres', password='password',cursor_factory=RealDictCursor)
+        #  conn = psycopg2.connect(host='localhost', database='fastapi', user='postgres', password='password',cursor_factory=RealDictCursor)
         conn=conn
         cursor = conn.cursor()
         print("Database connection was succesfully..")

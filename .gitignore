@@ -48,3 +48,5 @@ dist/
 
 # mypy
 .mypy_cache/
+
+.secret_key/
