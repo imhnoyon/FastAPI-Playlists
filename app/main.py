@@ -4,6 +4,24 @@ from fastapi.params import Body
 from pydantic import BaseModel # for import title str,content str
 
 
+#connection with postgresql  codes here
+import psycopg2
+from psycopg2.extras import RealDictCursor
+import time
+
+while True:
+    try:
+        conn = psycopg2.connect(host='localhost', database='fastapi', user='postgres', password='12345',cursor_factory=RealDictCursor)
+        cursor = conn.cursor()
+        print("Database connection was succesfully..")
+        break
+    except Exception as error:
+        print("Connecting database fields")
+        print("Error ", error)
+        time.sleep(2)
+
+
+
 
 app = FastAPI()
 
@@ -16,6 +34,14 @@ class Post(BaseModel): # how many parameter we needed assign this function
     published: bool= True
     rating: Optional[int] = None # optional field
     
+
+
+
+
+
+
+
+
 
 
 
