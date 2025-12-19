@@ -19,7 +19,17 @@ class Post(BaseModel): # how many parameter we needed assign this function
 
 
 
-
+def find_post(id):
+    for p in my_post:
+        if p['id'] == int(id):
+            print(p)
+            return p
+        
+        
+def get_find_index(id):
+    for i,p in enumerate(my_post):
+        if p['id'] ==int(id):
+            return i
 
 
 
@@ -79,11 +89,6 @@ def create_posts(playload: Post):
 
 
 #Single get post shown request
-def find_post(id):
-    for p in my_post:
-        if p['id'] == int(id):
-            print(p)
-            return p
 
 #leatest post find
 @app.get ("/posts/leatest")
@@ -101,8 +106,15 @@ def get_post(id):
     return {"post_details": post}
 
 
- #patch request trying not working solve in after sometime
-@app.patch("/posts/{id}")
-def update_post(id):
-    post= find_post(int(id))
-    return {"post_details": post}
+
+
+
+
+#delete post for indivual index
+@app.delete("/posts/{id}",status_code=status.HTTP_204_NO_CONTENT)
+def delete_post(id= int):
+    index=get_find_index(id)
+    if index ==None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"the id:{id} does not exist")
+    my_post.pop(index)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
