@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import FastAPI
+from fastapi import FastAPI,Response,status,HTTPException
 from fastapi.params import Body
 from pydantic import BaseModel # for import title str,content str
 
@@ -85,9 +85,19 @@ def find_post(id):
             print(p)
             return p
 
+#leatest post find
+@app.get ("/posts/leatest")
+def get_leatest_post():
+    post = my_post[len(my_post)-1]
+    return {'data':post}
+
 @app.get("/posts/{id}")
 def get_post(id):
     post=find_post(int(id))
+    if not post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"Post of id: {id} was not found..")
+        # response.status_code=status.HTTP_404_NOT_FOUND
+        # return {'message':f"Post of id: {id} was not found.."}
     return {"post_details": post}
 
 
