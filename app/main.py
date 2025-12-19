@@ -101,17 +101,22 @@ my_post = [
 #all post shown operation
 @app.get('/posts')
 def get_posts():
-    return{'data':my_post}
+    cursor.execute(""" SELECT * FROM posts """)
+    posts = cursor.fetchall()
+    return{'data':posts}
 
 
 #create post operation
 from random import randint
 @app.post("/posts")
-def create_posts(playload: Post): 
-    post_dict = playload.dict()
-    post_dict['id'] = randint(10,1000)
-    my_post.append(post_dict)
-    return {"Data":my_post}    
+def create_posts(post: Post): 
+    
+    cursor.execute(""" INSERT INTO posts (title,content, published) VALUES (%s , %s, %s) RETURNING * """ ,
+                   (post.title,post.content, post.published))
+    new_post=cursor.fetchone()
+    conn.commit()
+    
+    return {"Data":new_post}    
 
 
 #Single get post shown request
