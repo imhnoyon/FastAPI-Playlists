@@ -50,51 +50,8 @@ class Post(BaseModel): # how many parameter we needed assign this function
     title: str
     content: str
     published: bool= True
-    rating: Optional[int] = None # optional field
     
-
-
-
-
-
-
-
-
-
-
-
-def find_post(id):
-    for p in my_post:
-        if p['id'] == int(id):
-            print(p)
-            return p
-        
-        
-def get_find_index(id):
-    for i,p in enumerate(my_post):
-        if p['id'] ==int(id):
-            return i
-
-
-
-
-@app.get("/")
-def root():
-    return {"message": "Welcome to my first api"}
-
-
-
-@app.get("/message")
-def root():
-    return {"message": "how are you"}
-
-
-# @app.post("/posts")
-# def create_posts(playload: Post): #this post is class name post and parameter dictionary types and everything reacived in playload variable
-#     print(playload)
-#     print(playload.dict())
-#     my_post.append(playload.dict())
-#     return {"Data":my_post}
+    
 
 
 
@@ -102,46 +59,37 @@ def root():
 
 #CRUD OPERATION 
 
-my_post = [
-    {'title': 'Title of post 1', 'content': 'Content of post 1', 'id': 1},
-    {'title': 'Title of post 2', 'content': 'Content of post 2', 'id': 2},
-    {'title': 'Title of post 3', 'content': 'Content of post 3', 'id': 3},
-    {'title': 'Title of post 4', 'content': 'Content of post 4', 'id': 4},
-    {'title': 'Title of post 5', 'content': 'Content of post 5', 'id': 5},
-    {'title': 'Title of post 6', 'content': 'Content of post 6', 'id': 6},
-    {'title': 'Title of post 7', 'content': 'Content of post 7', 'id': 7},
-    {'title': 'Title of post 8', 'content': 'Content of post 8', 'id': 8},
-    {'title': 'Title of post 9', 'content': 'Content of post 9', 'id': 9},
-    {'title': 'Title of post 10', 'content': 'Content of post 10', 'id': 10}
-]
-
 
 #all post shown operation
 @app.get('/posts')
-def get_posts():
-    cursor.execute(""" SELECT * FROM posts """)
-    posts = cursor.fetchall()
+def get_posts(db:Session = Depends(get_db)):
+    
+    posts = db.query(models.Post).all()
     return{'data':posts}
 
 
 #create post operation
 
 @app.post("/posts")
-def create_posts(post: Post): 
+def create_posts(post: Post,db:Session = Depends(get_db)): 
     
-    cursor.execute(""" INSERT INTO posts (title,content, published) VALUES (%s , %s, %s) RETURNING * """ ,
-                   (post.title,post.content, post.published))
-    new_post=cursor.fetchone()
-    conn.commit()
+    # new_post= models.Post(title =post.title,content=post.content,published=post.published)
+    
+    #new efficient way to code bellow
+    new_post= models.Post(**post.dict())
+    
+    #new something added or edit add this 3 line must
+    db.add(new_post)
+    db.commit()
+    db.refresh(new_post)
     
     return {"Data":new_post}    
 
 
 #Single get post shown request
 @app.get("/posts/{id}")
-def get_post(id:str):
-    cursor.execute(""" SELECT * FROM posts WHERE id = %s """,(str(id),))
-    post = cursor.fetchone()
+def get_post(id:int,db:Session=Depends(get_db)):
+    post=db.query(models.Post).filter(models.Post.id == id).first()
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"Post of id: {id} was not found..")
     return {"post_details": post}
@@ -153,26 +101,30 @@ def get_post(id:str):
 
 #delete post for indivual index
 @app.delete("/posts/{id}",status_code=status.HTTP_204_NO_CONTENT)
-def delete_post(id: str):
-    cursor.execute(""" DELETE FROM posts WHERE id = %s RETURNING * """,(str(id),))
-    deleted_post = cursor.fetchone()
-    conn.commit()
-    if deleted_post ==None:
+def delete_post(id: int,db:Session=Depends(get_db)):
+    deleted_post=db.query(models.Post).filter(models.Post.id == id)
+    
+    if deleted_post.first() ==None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"the id:{id} does not exist")
     
+    deleted_post.delete(synchronize_session=False)
+    db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 
 #update any posts
 @app.put("/posts/{id}")
-def update_post(id:str, post:Post):
-    cursor.execute(""" UPDATE posts SET title=%s, content=%s, published=%s WHERE id= %s RETURNING * """,
-                   (post.title,post.content,post.published,str(id)))
-    update_post=cursor.fetchone()
-    conn.commit()
-    if update_post ==None:
+def update_post(id:int, post:Post,db:Session=Depends(get_db)):
+    
+    update_post = db.query(models.Post).filter(models.Post.id == id)
+    
+    
+    if update_post.first() ==None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"the id:{id} does not exist")
     
+    update_post.update(post.dict(),synchronize_session=False)
+    db.commit()
+    
 
-    return {"data": update_post}
+    return {"data": update_post.first()}
