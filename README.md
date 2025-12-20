@@ -1,4 +1,4 @@
-# 🚀 FastAPI Project
+# 🚀 FastAPI Playlist
 
 This is a simple FastAPI-based backend project built using Python.  
 It is designed for learning and building RESTful APIs with high performance.
