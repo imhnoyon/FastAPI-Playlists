@@ -1,22 +1,14 @@
-from typing import Optional
+from typing import Optional,List
 from fastapi import Depends, FastAPI,Response,status,HTTPException
 from fastapi.params import Body
-from pydantic import BaseModel # for import title str,content str
+
 app = FastAPI()
-
-
-
-
 from .database import  engine,get_db
-from . import models
+from . import models,schema
 from sqlalchemy.orm import Session
 
 
 models.Base.metadata.create_all(bind=engine)
-
-@app.get("/sqlalchemy")
-def test_posts(db:Session = Depends(get_db)):
-    return {"status":"Succesffuly"}
 
 
 
@@ -44,34 +36,22 @@ while True:
 
 
 
-
-
-class Post(BaseModel): # how many parameter we needed assign this function
-    title: str
-    content: str
-    published: bool= True
-    
-    
-
-
-
-
-
 #CRUD OPERATION 
 
 
 #all post shown operation
-@app.get('/posts')
+@app.get('/posts',response_model=List[schema.Post])
 def get_posts(db:Session = Depends(get_db)):
     
     posts = db.query(models.Post).all()
-    return{'data':posts}
+    return posts
+
 
 
 #create post operation
 
-@app.post("/posts")
-def create_posts(post: Post,db:Session = Depends(get_db)): 
+@app.post("/posts",response_model=schema.Post)
+def create_posts(post: schema.PostCreate,db:Session = Depends(get_db)): 
     
     # new_post= models.Post(title =post.title,content=post.content,published=post.published)
     
@@ -83,16 +63,16 @@ def create_posts(post: Post,db:Session = Depends(get_db)):
     db.commit()
     db.refresh(new_post)
     
-    return {"Data":new_post}    
+    return new_post
 
 
 #Single get post shown request
-@app.get("/posts/{id}")
+@app.get("/posts/{id}",response_model=schema.Post)
 def get_post(id:int,db:Session=Depends(get_db)):
     post=db.query(models.Post).filter(models.Post.id == id).first()
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"Post of id: {id} was not found..")
-    return {"post_details": post}
+    return  post
 
 
 
@@ -114,8 +94,8 @@ def delete_post(id: int,db:Session=Depends(get_db)):
 
 
 #update any posts
-@app.put("/posts/{id}")
-def update_post(id:int, post:Post,db:Session=Depends(get_db)):
+@app.put("/posts/{id}",response_model=schema.Post)
+def update_post(id:int, post:schema.PostCreate,db:Session=Depends(get_db)):
     
     update_post = db.query(models.Post).filter(models.Post.id == id)
     
@@ -127,4 +107,23 @@ def update_post(id:int, post:Post,db:Session=Depends(get_db)):
     db.commit()
     
 
-    return {"data": update_post.first()}
+    return  update_post.first()
+
+
+from passlib.context import CryptContext
+pwd_context = CryptContext( schemes=["bcrypt"], deprecated="auto")
+
+@app.post("/users",status_code=status.HTTP_201_CREATED,response_model=schema.UserOut)
+def Create_user(user:schema.CreateUser,db:Session=Depends(get_db)):
+    #hashing the password
+    hashed_password = pwd_context.hash(user.password[:60])
+    print(hashed_password)
+    user.password=hashed_password
+    print("***********",user.password)
+    new_user=models.User(email=user.email,
+        password=hashed_password)
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return new_user
+    
