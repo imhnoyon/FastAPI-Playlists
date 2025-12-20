@@ -116,10 +116,10 @@ pwd_context = CryptContext( schemes=["bcrypt"], deprecated="auto")
 @app.post("/users",status_code=status.HTTP_201_CREATED,response_model=schema.UserOut)
 def Create_user(user:schema.CreateUser,db:Session=Depends(get_db)):
     #hashing the password
-    hashed_password = pwd_context.hash(user.password[:60])
-    print(hashed_password)
+    
+    hashed_password = pwd_context.hash(user.password)
     user.password=hashed_password
-    print("***********",user.password)
+    print(len(user.password))
     new_user=models.User(email=user.email,
         password=hashed_password)
     db.add(new_user)

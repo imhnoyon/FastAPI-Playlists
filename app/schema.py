@@ -1,4 +1,4 @@
-from pydantic import BaseModel,EmailStr # for import title str,content str
+from pydantic import BaseModel,EmailStr, Field # for import title str,content str
 from datetime import datetime
 
 class PostBase(BaseModel): # how many parameter we needed assign this function
@@ -23,7 +23,7 @@ class Post(PostBase):
     
 class CreateUser(BaseModel):
     email:EmailStr
-    password:str
+    password: str = Field(..., min_length=8, max_length=72)
     
     
 class UserOut(BaseModel):
