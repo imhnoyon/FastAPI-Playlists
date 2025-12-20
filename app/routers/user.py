@@ -6,7 +6,9 @@ from sqlalchemy.orm import Session
 from ..database import  engine,get_db
 from .. import models,schema
 
-router=APIRouter()
+router=APIRouter(
+    tags=['Users']
+)
 
 
 #register user
@@ -26,6 +28,8 @@ def Create_user(user:schema.CreateUser,db:Session=Depends(get_db)):
     db.commit()
     db.refresh(new_user)
     return new_user
+    
+    
     
 #get shown one user by id
 

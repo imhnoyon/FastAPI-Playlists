@@ -7,7 +7,9 @@ from .. import models,schema
 
 
 
-router=APIRouter()
+router=APIRouter(
+    tags=['Posts']
+)
 
 
 #CRUD OPERATION 
