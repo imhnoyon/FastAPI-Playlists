@@ -37,6 +37,6 @@ class UserOut(BaseModel):
         
         
         
-class userLogin(BaseModel):
+class userLogin(BaseModel ):
     email:EmailStr
     password:str
