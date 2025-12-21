@@ -42,3 +42,5 @@ class userLogin(BaseModel):
     password:str
     
     
+class registration(BaseModel):
+    email:str
