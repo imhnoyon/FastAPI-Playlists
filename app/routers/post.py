@@ -17,7 +17,7 @@ router=APIRouter(
 
 #all post shown operation
 @router.get('/posts',response_model=List[schema.Post])
-def get_posts(db:Session = Depends(get_db),get_current_user:int = Depends(auth2.get_current_user)):
+def get_posts(db:Session = Depends(get_db)):
     
     posts = db.query(models.Post).all()
     return posts
@@ -27,12 +27,12 @@ def get_posts(db:Session = Depends(get_db),get_current_user:int = Depends(auth2.
 #create post operation
 
 @router.post("/posts",response_model=schema.Post)
-def create_posts(post: schema.PostCreate,db:Session = Depends(get_db), get_current_user:int = Depends(auth2.get_current_user)): 
+def create_posts(post: schema.PostCreate,db:Session = Depends(get_db),get_current_user:models.User = Depends(auth2.get_current_user)): 
     
     # new_post= models.Post(title =post.title,content=post.content,published=post.published)
     
     #new efficient way to code bellow
-    new_post= models.Post(**post.dict())
+    new_post= models.Post(**post.dict(),owner_id=get_current_user.id)
     
     #new something added or edit add this 3 line must
     db.add(new_post)
@@ -44,7 +44,7 @@ def create_posts(post: schema.PostCreate,db:Session = Depends(get_db), get_curre
 
 #Single get post shown request
 @router.get("/posts/{id}",response_model=schema.Post)
-def get_post(id:int,db:Session=Depends(get_db)):
+def get_post(id:int,db:Session=Depends(get_db),get_current_user:int = Depends(auth2.get_current_user)):
     post=db.query(models.Post).filter(models.Post.id == id).first()
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"Post of id: {id} was not found..")
@@ -57,7 +57,7 @@ def get_post(id:int,db:Session=Depends(get_db)):
 
 #delete post for indivual index
 @router.delete("/posts/{id}",status_code=status.HTTP_204_NO_CONTENT)
-def delete_post(id: int,db:Session=Depends(get_db)):
+def delete_post(id: int,db:Session=Depends(get_db),get_current_user:int = Depends(auth2.get_current_user)):
     deleted_post=db.query(models.Post).filter(models.Post.id == id)
     
     if deleted_post.first() ==None:
@@ -71,7 +71,7 @@ def delete_post(id: int,db:Session=Depends(get_db)):
 
 #update any posts
 @router.put("/posts/{id}",response_model=schema.Post)
-def update_post(id:int, post:schema.PostCreate,db:Session=Depends(get_db)):
+def update_post(id:int, post:schema.PostCreate,db:Session=Depends(get_db),get_current_user:int = Depends(auth2.get_current_user)):
     
     update_post = db.query(models.Post).filter(models.Post.id == id)
     
