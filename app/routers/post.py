@@ -27,7 +27,7 @@ def get_posts(db:Session = Depends(get_db)):
 #create post operation
 
 @router.post("/posts",response_model=schema.Post)
-def create_posts(post: schema.PostCreate,db:Session = Depends(get_db),get_current_user:models.User = Depends(auth2.get_current_user)): 
+def create_posts(post: schema.PostCreate,db:Session = Depends(get_db),get_current_user:int = Depends(auth2.get_current_user)): 
     
     # new_post= models.Post(title =post.title,content=post.content,published=post.published)
     
@@ -58,12 +58,16 @@ def get_post(id:int,db:Session=Depends(get_db),get_current_user:int = Depends(au
 #delete post for indivual index
 @router.delete("/posts/{id}",status_code=status.HTTP_204_NO_CONTENT)
 def delete_post(id: int,db:Session=Depends(get_db),get_current_user:int = Depends(auth2.get_current_user)):
-    deleted_post=db.query(models.Post).filter(models.Post.id == id)
+    deleted_post_query=db.query(models.Post).filter(models.Post.id == id)
     
-    if deleted_post.first() ==None:
+    post=deleted_post_query.first()
+    if post ==None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"the id:{id} does not exist")
     
-    deleted_post.delete(synchronize_session=False)
+    if post.owner_id !=get_current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail=f"Not Authorized to perfrom the request")
+    
+    deleted_post_query.delete(synchronize_session=False)
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -78,6 +82,9 @@ def update_post(id:int, post:schema.PostCreate,db:Session=Depends(get_db),get_cu
     
     if update_post.first() ==None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"the id:{id} does not exist")
+    
+    if update_post.first().id != get_current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail=f"Not Authorized to perfrom the request")
     
     update_post.update(post.dict(),synchronize_session=False)
     db.commit()
