@@ -3,7 +3,7 @@ from fastapi import Depends, FastAPI,Response,status,HTTPException,APIRouter
 from typing import List
 from sqlalchemy.orm import Session
 from ..database import  engine,get_db
-from .. import models,schema
+from .. import models,schema,auth2
 
 
 
@@ -17,7 +17,7 @@ router=APIRouter(
 
 #all post shown operation
 @router.get('/posts',response_model=List[schema.Post])
-def get_posts(db:Session = Depends(get_db)):
+def get_posts(db:Session = Depends(get_db),get_current_user:int = Depends(auth2.get_current_user)):
     
     posts = db.query(models.Post).all()
     return posts
@@ -27,7 +27,7 @@ def get_posts(db:Session = Depends(get_db)):
 #create post operation
 
 @router.post("/posts",response_model=schema.Post)
-def create_posts(post: schema.PostCreate,db:Session = Depends(get_db)): 
+def create_posts(post: schema.PostCreate,db:Session = Depends(get_db), get_current_user:int = Depends(auth2.get_current_user)): 
     
     # new_post= models.Post(title =post.title,content=post.content,published=post.published)
     

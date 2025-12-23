@@ -21,7 +21,6 @@ def Create_user(user:schema.CreateUser,db:Session=Depends(get_db)):
     
     hashed_password = pwd_context.hash(user.password)
     user.password=hashed_password
-    print(len(user.password))
     new_user=models.User(email=user.email,
         password=hashed_password)
     db.add(new_user)
@@ -41,5 +40,11 @@ def get_user(id:int,db:Session=Depends(get_db)):
     if user == None:
         raise  HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"the id:{id} does not exist")
     return user
+
+
+@router.get("/users",response_model=List[schema.UserOut])
+def get_users(db:Session=Depends(get_db)):
+    users=db.query(models.User).all()
+    return users
     
     
