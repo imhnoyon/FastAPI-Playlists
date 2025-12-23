@@ -17,9 +17,13 @@ router=APIRouter(
 
 #all post shown operation
 @router.get('/posts',response_model=List[schema.Post])
-def get_posts(db:Session = Depends(get_db)):
+def get_posts(db:Session = Depends(get_db),get_current_user:int = Depends(auth2.get_current_user)):
     
+    #retrive for all post i mean public
     posts = db.query(models.Post).all()
+    
+    #now retrive just your own post i mean private
+    # posts=db.query(models.Post).filter(models.Post.owner_id == get_current_user.id).all()
     return posts
 
 
@@ -33,6 +37,7 @@ def create_posts(post: schema.PostCreate,db:Session = Depends(get_db),get_curren
     
     #new efficient way to code bellow
     new_post= models.Post(**post.dict(),owner_id=get_current_user.id)
+    
     
     #new something added or edit add this 3 line must
     db.add(new_post)
@@ -48,6 +53,11 @@ def get_post(id:int,db:Session=Depends(get_db),get_current_user:int = Depends(au
     post=db.query(models.Post).filter(models.Post.id == id).first()
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"Post of id: {id} was not found..")
+    
+    #retrive just your own post
+    # if post.owner_id !=get_current_user.id:
+    #     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail=f"Not Authorized to perfrom the request")
+    
     return  post
 
 
@@ -64,6 +74,7 @@ def delete_post(id: int,db:Session=Depends(get_db),get_current_user:int = Depend
     if post ==None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"the id:{id} does not exist")
     
+    #delete just for you own post
     if post.owner_id !=get_current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail=f"Not Authorized to perfrom the request")
     
@@ -83,6 +94,7 @@ def update_post(id:int, post:schema.PostCreate,db:Session=Depends(get_db),get_cu
     if update_post.first() ==None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"the id:{id} does not exist")
     
+    #update just for you own post
     if update_post.first().id != get_current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail=f"Not Authorized to perfrom the request")
     
